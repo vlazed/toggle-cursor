@@ -30,8 +30,11 @@ function notify(text, lifetime, debounceTime)
     lbl:SetFont("tmc_NotifyFont")
     lbl:SetColor(WHITE)
     lbl:SetContentAlignment(5)
+    lbl:SetWorldClicker(true)
     notifyPanel:AddItem(lbl, lifetime)
     notifyPanel:MoveTo(screenX, screenY - 30, lifetime, 0, 2)
+    notifyPanel:SetWorldClicker(true)
     debounce = true
     timer.Simple(debounceTime, function() debounce = false end)
+    timer.Simple(lifetime + 1, function() notifyPanel:Remove() end)
 end
