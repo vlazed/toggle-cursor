@@ -1,5 +1,4 @@
 if CLIENT then
-    include("tmc/notification.lua")
     local notificationsEnabled = CreateClientConVar("tmc_notifications", "1", true, false, "Enable or disable notifications when tmc_togglemousecursor executes", 0, 1):GetBool()
     cvars.AddChangeCallback("tmc_notifications", function(_, _, new) notificationsEnabled = tobool(new) end)
     local enabled = false
