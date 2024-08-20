@@ -5,7 +5,6 @@ if CLIENT then
     local enabled = false
     local worldPanel = vgui.GetWorldPanel()
     local hudPanel = GetHUDPanel()
-    local pl = LocalPlayer()
     concommand.Add("tmc_togglemousecursor", function()
         enabled = not enabled
         gui.EnableScreenClicker(enabled)
