@@ -4,7 +4,7 @@
   <img src="./media/preview.gif" alt="animated">
 </p>
 <p align="center">
-  <code>tmc_togglemousecursor</code> to lock or unlock the moyse
+  <code>tmc_togglemousecursor</code> to lock or unlock the mouse
 </p>
 
 This addon adds the console command `tmc_togglemousecursor` which enables free mouse cursor movement without moving the crosshair. You can then bind a key to this console command to toggle mouse cursor movement.
