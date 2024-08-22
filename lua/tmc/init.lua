@@ -1,4 +1,5 @@
 if CLIENT then
+    timer.Remove("tmc_test_timer")
     surface.CreateFont("tmc_NotifyFont", {
         font = "Arial",
         size = 24,
@@ -19,6 +20,13 @@ if CLIENT then
         function playPing()
             EmitSound(sound, vector_origin, -2, CHAN_AUTO, 0.05, 75, 0, 255, 3, 105)
         end
+    end
+
+    -- changes EnableScreenClicker so even if another addon disables screen clicking, this addon's state still keeps it enabled
+    -- naturally introduces incompatibilities with addons that change gui.EnableScreenClicker 
+    gui.tmc_EnableScreenClickerInternal = gui.EnableScreenClicker
+    function gui.EnableScreenClicker(bool)
+        gui.tmc_EnableScreenClickerInternal(bool or enabled)
     end
 
     local function notify(text, lifetime, debounceTime)
