@@ -1,5 +1,4 @@
 if CLIENT then
-    timer.Remove("tmc_test_timer")
     surface.CreateFont("tmc_NotifyFont", {
         font = "Arial",
         size = 24,
