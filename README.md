@@ -17,4 +17,6 @@ Every time this command runs, you will hear a sound and receive a notification a
 
 ## Note
 
-This addon overrides `gui.EnableScreenClicker` to preserve the unlocked cursor state. This addon will still work even if other addons override this function. Expect undefined behavior due to this incompatibility.
+This addon overrides `gui.EnableScreenClicker` to preserve the unlocked cursor state. This addon will still work even if other addons override this function; however, if the cursor is unlocked and another addon disables screen clicking, the cursor will lock. 
+
+Toggle `tmc_togglemousecursor` again to fix inconsistent behaviors. Otherwise, expect undefined behavior due to this incompatibility.
