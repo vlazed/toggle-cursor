@@ -14,3 +14,7 @@ This addon works in the same way as holding C to open the tool control panel. Ho
 This is useful for scenarios which require precise mouse movement, as opposed to the crosshair which is locked to mouse sensitivity. 
 
 Every time this command runs, you will hear a sound and receive a notification at the center of your crosshair. You can enable or disable notifications with `tmc_notifications`.
+
+## Note
+
+This addon overrides `gui.EnableScreenClicker` to preserve the unlocked cursor state. This addon will still work even if other addons override this function. Expect undefined behavior due to this incompatibility.
