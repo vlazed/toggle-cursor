@@ -2,11 +2,19 @@ if SERVER then
 	return
 end
 
+local NOTIFICATION_PATH = "tmc/notification.json"
+local SOUND_PATH = "tmc/notification.mp3"
+local DEFAULT_NOTIFICATION = {
+	["unlocked"] = "Cursor Unlocked",
+	["locked"] = "Cursor Locked",
+}
+local WHITE = Color(255, 255, 255, 255)
+
 surface.CreateFont("tmc_NotifyFont", {
 	font = "Arial",
 	size = 24,
-	additive = true,
 	weight = 50,
+	shadow = true,
 })
 
 local notificationsEnabled = CreateClientConVar(
@@ -24,15 +32,22 @@ cvars.AddChangeCallback("tmc_notifications", function(_, _, new)
 end)
 
 local enabled = false
+local debounce = false
 local worldPanel = vgui.GetWorldPanel()
 local hudPanel = GetHUDPanel()
-local debounce = false
-local WHITE = Color(255, 255, 255, 255)
+
 local playPing
 do
-	local sound = Sound("resource/warning.wav")
+	sound.Add({
+		sound = SOUND_PATH,
+		name = "tmc_notificationSound",
+		channel = CHAN_STATIC,
+		level = SNDLVL_NONE,
+		volume = 1,
+		pitch = 100,
+	})
 	function playPing()
-		EmitSound(sound, vector_origin, -2, CHAN_AUTO, 0.05, 75, 0, 255, 3, 105)
+		surface.PlaySound(SOUND_PATH)
 	end
 end
 
@@ -43,6 +58,26 @@ function gui.EnableScreenClicker(bool)
 	gui.tmc_EnableScreenClickerInternal(bool or enabled)
 end
 
+---Get custom cursor text from a json file located in the path.
+---Called everytime we want to notify. Hence, live updates are possible.
+---@param path string
+---@return TMCData
+local function getCustomText(path)
+	if not file.Exists("tmc", "DATA") then
+		file.CreateDir("tmc")
+	end
+	if not file.Exists(path, "DATA") then
+		file.Write(path, util.TableToJSON(DEFAULT_NOTIFICATION, true))
+	end
+
+	local data = file.Read(path, "DATA")
+	return data and util.JSONToTable(data)
+end
+
+---Tell the user that they have locked or unlocked their cursor
+---@param text string
+---@param lifetime number
+---@param debounceTime number
 local function notify(text, lifetime, debounceTime)
 	if debounce then
 		return
@@ -79,7 +114,8 @@ local function handleToggleMouse()
 	worldPanel:SetWorldClicker(enabled)
 	hudPanel:SetWorldClicker(enabled)
 	if notificationsEnabled then
-		local text = enabled and "Cursor Unlocked" or "Cursor Locked"
+		local customText = getCustomText(NOTIFICATION_PATH)
+		local text = enabled and customText.unlocked or customText.locked
 		notify(text, 1, 0.5)
 	end
 end
