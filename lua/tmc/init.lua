@@ -55,7 +55,7 @@ end
 -- naturally introduces incompatibilities with addons that change gui.EnableScreenClicker
 gui.tmc_EnableScreenClickerInternal = gui.EnableScreenClicker
 function gui.EnableScreenClicker(bool)
-	gui.tmc_EnableScreenClickerInternal(bool or enabled)
+	return gui.tmc_EnableScreenClickerInternal(bool or enabled)
 end
 
 ---Get custom cursor text from a json file located in the path.
