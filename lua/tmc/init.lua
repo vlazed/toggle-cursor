@@ -54,8 +54,8 @@ end
 -- changes EnableScreenClicker so even if another addon disables screen clicking, this addon's state still keeps it enabled
 -- naturally introduces incompatibilities with addons that change gui.EnableScreenClicker
 gui.tmc_EnableScreenClickerInternal = gui.EnableScreenClicker
-function gui.EnableScreenClicker(bool)
-	return gui.tmc_EnableScreenClickerInternal(bool or enabled)
+function gui.EnableScreenClicker(bool, ...)
+	return gui.tmc_EnableScreenClickerInternal(bool or enabled, ...)
 end
 
 ---Get custom cursor text from a json file located in the path.
