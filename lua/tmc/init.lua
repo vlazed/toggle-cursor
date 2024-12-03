@@ -25,11 +25,17 @@ local notificationsEnabled = CreateClientConVar(
 	"Enable or disable notifications when tmc_togglemousecursor executes",
 	0,
 	1
-):GetBool()
+)
 
-cvars.AddChangeCallback("tmc_notifications", function(_, _, new)
-	notificationsEnabled = tobool(new)
-end)
+local blockEntityMenu = CreateClientConVar(
+	"tmc_blockentitymenu",
+	"0",
+	true,
+	false,
+	"Disable context options pop-up when right-clicking on an entity",
+	0,
+	1
+)
 
 local enabled = false
 local debounce = false
@@ -51,11 +57,20 @@ do
 	end
 end
 
--- changes EnableScreenClicker so even if another addon disables screen clicking, this addon's state still keeps it enabled
--- naturally introduces incompatibilities with addons that change gui.EnableScreenClicker
+-- detours EnableScreenClicker so even if another addon disables screen clicking, this addon's state still keeps it enabled
 gui.tmc_EnableScreenClickerInternal = gui.EnableScreenClicker
 function gui.EnableScreenClicker(bool, ...)
 	return gui.tmc_EnableScreenClickerInternal(bool or enabled, ...)
+end
+
+-- detours OpenEntityMenu to control opening the entity menu by ConVar if the cursor is free
+properties.tmc_OpenEntityMenuInternal = properties.OpenEntityMenu
+function properties.OpenEntityMenu(ent, tr, ...)
+	if blockEntityMenu:GetBool() and enabled then
+		return
+	end
+
+	return properties.tmc_OpenEntityMenuInternal(ent, tr, ...)
 end
 
 ---Get custom cursor text from a json file located in the path.
@@ -113,7 +128,7 @@ local function handleToggleMouse()
 	gui.EnableScreenClicker(enabled)
 	worldPanel:SetWorldClicker(enabled)
 	hudPanel:SetWorldClicker(enabled)
-	if notificationsEnabled then
+	if notificationsEnabled:GetBool() then
 		local customText = getCustomText(NOTIFICATION_PATH)
 		local text = enabled and customText.unlocked or customText.locked
 		notify(text, 1, 0.5)
