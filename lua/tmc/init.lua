@@ -57,16 +57,28 @@ do
 	end
 end
 
+-- Track when the context key is set, so we can still attempt to open the entity menu
+-- when the context menu key is down
+local isContextKeyDown = false
+hook.Remove("OnContextMenuOpen", "tmc_trackContextMenu")
+hook.Add("OnContextMenuOpen", "tmc_trackContextMenu", function()
+	isContextKeyDown = true
+end)
+hook.Remove("OnContextMenuClose", "tmc_trackContextMenu")
+hook.Add("OnContextMenuClose", "tmc_trackContextMenu", function()
+	isContextKeyDown = false
+end)
+
 -- detours EnableScreenClicker so even if another addon disables screen clicking, this addon's state still keeps it enabled
-gui.tmc_EnableScreenClickerInternal = gui.EnableScreenClicker
+gui.tmc_EnableScreenClickerInternal = gui.tmc_EnableScreenClickerInternal or gui.EnableScreenClicker
 function gui.EnableScreenClicker(bool, ...)
 	return gui.tmc_EnableScreenClickerInternal(bool or enabled, ...)
 end
 
 -- detours OpenEntityMenu to control opening the entity menu by ConVar if the cursor is free
-properties.tmc_OpenEntityMenuInternal = properties.OpenEntityMenu
+properties.tmc_OpenEntityMenuInternal = properties.tmc_OpenEntityMenuInternal or properties.OpenEntityMenu
 function properties.OpenEntityMenu(ent, tr, ...)
-	if blockEntityMenu:GetBool() and enabled then
+	if blockEntityMenu:GetBool() and enabled and not isContextKeyDown then
 		return
 	end
 
