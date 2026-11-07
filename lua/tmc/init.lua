@@ -69,21 +69,30 @@ hook.Add("OnContextMenuClose", "tmc_trackContextMenu", function()
 	isContextKeyDown = false
 end)
 
--- detours EnableScreenClicker so even if another addon disables screen clicking, this addon's state still keeps it enabled
-gui.tmc_EnableScreenClickerInternal = gui.tmc_EnableScreenClickerInternal or gui.EnableScreenClicker
-function gui.EnableScreenClicker(bool, ...)
-	return gui.tmc_EnableScreenClickerInternal(bool or enabled, ...)
-end
-
--- detours OpenEntityMenu to control opening the entity menu by ConVar if the cursor is free
-properties.tmc_OpenEntityMenuInternal = properties.tmc_OpenEntityMenuInternal or properties.OpenEntityMenu
-function properties.OpenEntityMenu(ent, tr, ...)
-	if blockEntityMenu:GetBool() and enabled and not isContextKeyDown then
-		return
+-- STUPID HACKY! This ensures that this screen clicker detour loads after all others
+-- This assumes other addons *detour* EnableScreenClicker, not replace it.
+-- e.g. tmc -> smh -> [C]; if addon z replaces screenclicker w/o timers, then tmc -> z -> [C]
+-- if z replaces screenclicker with timers, then we can get this
+-- - z > tmc => z -> tmc -> chain -> [C]
+-- - z < tmc => tmc -> z -> chain -> [C]
+-- - z == tmc => tmc?z? -> z?tmc? -> chain -> [C]
+timer.Simple(1, function()
+	-- detours EnableScreenClicker so even if another addon disables screen clicking, this addon's state still keeps it enabled
+	gui.tmc_EnableScreenClickerInternal = gui.tmc_EnableScreenClickerInternal or gui.EnableScreenClicker
+	function gui.EnableScreenClicker(bool, ...)
+		return gui.tmc_EnableScreenClickerInternal(bool or enabled, ...)
 	end
 
-	return properties.tmc_OpenEntityMenuInternal(ent, tr, ...)
-end
+	-- detours OpenEntityMenu to control opening the entity menu by ConVar if the cursor is free
+	properties.tmc_OpenEntityMenuInternal = properties.tmc_OpenEntityMenuInternal or properties.OpenEntityMenu
+	function properties.OpenEntityMenu(ent, tr, ...)
+		if blockEntityMenu:GetBool() and enabled and not isContextKeyDown then
+			return
+		end
+
+		return properties.tmc_OpenEntityMenuInternal(ent, tr, ...)
+	end
+end)
 
 ---Get custom cursor text from a json file located in the path.
 ---Called everytime we want to notify. Hence, live updates are possible.
