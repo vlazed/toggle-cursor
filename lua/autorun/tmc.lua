@@ -1,5 +1,6 @@
+-- TMC Entry point
 if SERVER then
-    AddCSLuaFile("tmc/init.lua")
+	AddCSLuaFile("tmc/init.lua")
 else
-    include("tmc/init.lua")
+	include("tmc/init.lua")
 end
