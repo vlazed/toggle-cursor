@@ -1,0 +1,78 @@
+name: Deploy to Workshop
+
+on:
+  push:
+    branches:
+      - 'main'
+
+
+jobs:
+  check-changes:
+    runs-on: ubuntu-latest
+    # Map the step outputs to job outputs so subsequent jobs can use them
+    outputs:
+      run_job: ${{ steps.filter.outputs.not_in_folder }}
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Filter Path Changes
+        uses: dorny/paths-filter@v3
+        id: filter
+        with:
+          filters: |
+            not_in_folder:
+              - '.github/**'
+
+  publish:
+    needs: check-changes
+    if: ${{ needs.check-changes.outputs.run_job == 'false' }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          
+      - name: Install Converter
+        run: npm install -g @steamdown/cli
+        
+      - name: Resolve Changelog Message
+        id: changelog
+        env:
+          # Use push payload message if available, otherwise read via git for PRs
+          PUSH_MSG: ${{ github.event.head_commit.message }}
+        run: |
+          if [ -n "$PUSH_MSG" ]; then
+            echo "MSG<<EOF" >> "$GITHUB_OUTPUT"
+            echo "$PUSH_MSG" >> "$GITHUB_OUTPUT"
+            echo "EOF" >> "$GITHUB_OUTPUT"
+          else
+            PR_MSG=$(git log -1 --pretty=%B FETCH_HEAD)
+            
+            echo "MSG<<EOF" >> "$GITHUB_OUTPUT"
+            echo "$PR_MSG" >> "$GITHUB_OUTPUT"
+            echo "EOF" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Convert Markdown to BBCode
+        id: changelog_final
+        env:
+          OLD_CHANGELOG: ${{ steps.changelog.outputs.MSG }}
+        run: |
+          # https://github.com/orgs/community/discussions/116619#discussioncomment-8994849
+          echo "CHANGELOG<<EOF" >> "$GITHUB_OUTPUT"          
+          echo "$OLD_CHANGELOG" | steamdown >> "$GITHUB_OUTPUT"
+          echo "EOF" >> "$GITHUB_OUTPUT"
+
+      - name: Upload to Steam Workshop
+        uses: gmod-workshop/workshop-upload@v1
+        with:
+          username: ${{ secrets.STEAM_USERNAME }}
+          vdf: ${{ secrets.STEAM_VDF }}
+          id: ${{ 3326989621 }}
+          changelog: ${{ steps.changelog_final.outputs.CHANGELOG }}
+          folder: .
